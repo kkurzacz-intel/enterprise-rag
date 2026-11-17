@@ -1,0 +1,80 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Renovate covers what the 'Sec :: Dep updater' workflow (uv lock --upgrade / pnpm re-resolve within declared ranges) cannot: updates outside the declared ranges for Python and JS, all updates for Go (go.mod has no ranges) and for external Helm charts.",
+  "extends": ["config:recommended"],
+  "dependencyDashboard": { "enabled": true, "title": "Renovate: out-of-range dependency updates" },
+  "dependencyDashboardApproval": true,
+  "forkProcessing": "enabled",
+  "labels": ["dependencies", "renovate"],
+  "enabledManagers": ["pep621", "pip_requirements", "npm", "gomod", "helmv3", "custom.regex"],
+  "ignorePresets": [":ignoreModulesAndTests"],
+  "ignorePaths": ["**/node_modules/**"],
+  "packageRules": [
+    {
+      "description": "Python (pyproject.toml + uv.lock) and JS (pnpm workspace): only propose versions outside the declared range (majors, and 0.x minors past a tight cap such as torchvision<0.29 or ^0.4.7). In-range updates are left to the Dep updater.",
+      "matchManagers": ["pep621", "npm"],
+      "rangeStrategy": "replace"
+    },
+    {
+      "description": "Python deps capped at the next major ('>=X.Y.Z,<N'): 'bump' moves the floor to the new version and the cap to the next major ('>=1.77.0,<2' -> '>=3.51.0,<4'), keeping the convention the Dep updater relies on. Caps must be written '<N', not '<N.0.0' (Renovate keeps the cap precision, '<2.0.0' would become '<3.52.0'). Every minor/patch is in range there, so it is left to the Dep updater (bump would otherwise raise the floor on each one).",
+      "matchManagers": ["pep621"],
+      "matchCurrentValue": "/,\\s*<\\s*\\d+$/",
+      "rangeStrategy": "bump"
+    },
+    {
+      "matchManagers": ["pep621"],
+      "matchCurrentValue": "/,\\s*<\\s*\\d+$/",
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": false
+    },
+    {
+      "description": "PyTorch CPU index versions carry a local label (2.15.0+cpu) that 'bump' cannot handle (no PR at all); 'replace' gives '>=3,<4'.",
+      "matchManagers": ["pep621"],
+      "matchPackageNames": ["torch", "torchvision", "torchaudio"],
+      "rangeStrategy": "replace"
+    },
+    {
+      "description": "Test requirements.txt files are exact pins (==): majors only.",
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["pep621", "pip_requirements"],
+      "addLabels": ["python"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "addLabels": ["javascript"]
+    },
+    {
+      "description": "Go: go.mod pins exact versions, so Renovate handles minor/patch too. Tidy go.sum and rewrite import paths on /vN major bumps.",
+      "matchManagers": ["gomod"],
+      "addLabels": ["go"],
+      "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"]
+    },
+    {
+      "description": "Go: one grouped PR for all minor/patch updates, majors stay separate.",
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "Go minor/patch updates"
+    },
+    {
+      "description": "Helm: track all versions of external charts.",
+      "matchDatasources": ["helm"],
+      "addLabels": ["helm"]
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "SeaweedFS Helm chart installed by Ansible (roles/app_edp/tasks/seaweedfs.yaml) with the version pinned in the EDP values file.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^deployment/components/edp/values\\.yaml$/"],
+      "matchStrings": [
+        "seaweedfs:\\n(?:[ \\t]+.*\\n)*?[ \\t]+version:[ \\t]*\"(?<currentValue>[^\"]+)\"\\n[ \\t]+repo:[ \\t]*\"(?<registryUrl>[^\"]+)\""
+      ],
+      "depNameTemplate": "seaweedfs",
+      "datasourceTemplate": "helm"
+    }
+  ]
+}
