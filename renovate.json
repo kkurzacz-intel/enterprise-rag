@@ -7,7 +7,7 @@
   "forkProcessing": "enabled",
   "labels": ["dependencies", "renovate"],
   "enabledManagers": ["pep621", "pip_requirements", "npm", "gomod", "helmv3", "custom.regex"],
-  "ignorePresets": [":ignoreModulesAndTests"],
+  "ignorePresets": [":ignoreModulesAndTests", "mergeConfidence:age-confidence-badges"],
   "ignorePaths": ["**/node_modules/**"],
   "packageRules": [
     {
