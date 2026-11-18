@@ -1,6 +1,6 @@
 dependencies:
 - name: apisix
   repository: https://charts.apiseven.com
-  version: 2.14.1
-digest: sha256:8640e591eb5037e630ad0d8deff8275ecaecc851fc63fcad6cf71b96b938988c
-generated: "2026-07-11T17:15:16.9639623+02:00"
+  version: 2.19.0
+digest: sha256:ad62ed4334b5509f23ed07ff921b641dd7e0e7f944ad922559a0d3ec79677e52
+generated: "2026-11-18T12:21:11.396368502Z"
