@@ -9,6 +9,12 @@
   "enabledManagers": ["pep621", "pip_requirements", "npm", "gomod", "helmv3", "custom.regex"],
   "ignorePresets": [":ignoreModulesAndTests", "mergeConfidence:age-confidence-badges"],
   "ignorePaths": ["**/node_modules/**"],
+  "vulnerabilityAlerts": {
+    "description": "Turn the repository's Dependabot alerts into fixes, including transitive deps that only exist in a lock file (e.g. dnspython via pymongo: uv lock --upgrade-package dnspython==<fixed>). Fixes use the lowest patched version and, like every other update, wait for approval on the dashboard (Renovate's default would open them immediately). Needs Dependabot alerts enabled and 'Dependabot alerts: read' on RENOVATE_TOKEN.",
+    "enabled": true,
+    "dependencyDashboardApproval": true,
+    "addLabels": ["security"]
+  },
   "packageRules": [
     {
       "description": "Python (pyproject.toml + uv.lock) and JS (pnpm workspace): in-range updates only touch the lock file (uv lock --upgrade-package / pnpm), out-of-range ones also move the range ('>=1.77.0,<2' -> '>=3.51,<4', tight caps such as torchvision<0.29.0 -> <0.30.0). Write major caps as '<N', not '<N.0.0': Renovate keeps the precision of the cap, so '<2.0.0' would become '<3.52.0'.",
